@@ -1,0 +1,109 @@
+---
+title: "Logistic Regression From Scratch"
+author: "Jiashu Liu"
+date: "2024-02-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load libraries
+library(ggplot2)
+library(dplyr)
+# library(palmerpenguins)
+library(mlbench)
+```
+
+```{r}
+# Define sigmoid function
+sigmoid <- function(mu){
+    1/(1+exp(-mu))
+}
+```
+
+```{r}
+# Define cost function
+# n obs and m features
+cost <- function(X, Beta, y){
+  n <- nrow(X)
+  J <- -sum(y*log(sigmoid(X%*%Beta)) + (1-y)*log(1 - sigmoid(X%*%Beta)))/n 
+  return(J)
+}
+```
+
+```{r}
+ # Define gradient descent for cost function
+# sum(X * (y-sigmoid(X%*%Beta)))/n
+grad <- function(Beta, X, y) {
+  gradient <- t(X) %*% (sigmoid(X %*% Beta) - y) / nrow(X)
+  return(gradient)
+}
+```
+
+```{r}
+optimized_logisticReg<- function(X, y) {
+#  X <- as.matrix(cbind(1, X))  # Add intercept term to X
+  X <- as.matrix(X)
+  y <- as.matrix(y)
+  m <- ncol(X)
+  Beta_initial <- rep(0, m)
+  optimization <- optim(par = Beta_initial, fn = cost, gr = grad, X = X, y = y, method = "BFGS")
+  return(optimization$par)
+}
+```
+
+Using penguins dataset to test the algorithm 
+
+```{r}
+# Load Dataset
+data("BreastCancer")
+breastCancer <- BreastCancer %>% 
+  na.omit() %>% 
+  select(-Id) %>% 
+  mutate(Class = as.numeric(Class == "malignant")) 
+
+# One-hot encoding
+# X <- model.matrix(~ . - Class - 1, data = breastCancer)
+X <- model.matrix(~ . - Class, data = breastCancer)
+y <- breastCancer$Class
+```
+
+```{r}
+set.seed(123)  
+training_set <- sample(1:nrow(X), size = floor(0.8 * nrow(X)))
+
+# Create training data
+X_train <- X[training_set, ]
+y_train <- y[training_set]
+
+# Create testing data
+X_test <- X[-training_set, ]
+y_test <- y[-training_set]
+```
+```{r}
+optimized_params <- optimized_logisticReg(X_train, y_train)
+print(optimized_params)
+```
+```{r}
+print(dim(X_test))
+print(length(optimized_params))
+```
+
+```{r}
+probabilities <- sigmoid(X_test %*% optimized_params)
+predicted_classes <- ifelse(probabilities > 0.5, 1, 0)
+```
+
+```{r}
+accuracy <- mean(predicted_classes == y_test)
+print(paste("Accuracy:", accuracy))
+```
+
+```{r}
+# Data visualization
+
+```
+
