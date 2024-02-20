@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load libraries
 library(ggplot2)
 library(dplyr)
+library(tidyverse)
 # library(palmerpenguins)
 library(mlbench)
 ```
@@ -45,7 +46,7 @@ grad <- function(Beta, X, y) {
 
 ```{r}
 optimized_logisticReg<- function(X, y) {
-#  X <- as.matrix(cbind(1, X))  # Add intercept term to X
+# X <- as.matrix(cbind(1, X))  # Add intercept term to X
   X <- as.matrix(X)
   y <- as.matrix(y)
   m <- ncol(X)
@@ -71,18 +72,20 @@ X <- model.matrix(~ . - Class, data = breastCancer)
 y <- breastCancer$Class
 ```
 
+
 ```{r}
 set.seed(123)  
-training_set <- sample(1:nrow(X), size = floor(0.8 * nrow(X)))
+train_test_split <- sample(1:nrow(X), size = floor(0.8 * nrow(X)))
 
 # Create training data
-X_train <- X[training_set, ]
-y_train <- y[training_set]
+X_train <- X[train_test_split, ]
+y_train <- y[train_test_split]
 
 # Create testing data
-X_test <- X[-training_set, ]
-y_test <- y[-training_set]
+X_test <- X[-train_test_split, ]
+y_test <- y[-train_test_split]
 ```
+
 ```{r}
 optimized_params <- optimized_logisticReg(X_train, y_train)
 print(optimized_params)
@@ -103,7 +106,18 @@ print(paste("Accuracy:", accuracy))
 ```
 
 ```{r}
-# Data visualization
-
+table(y_test, predicted_classes)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,0 +1,79 @@
+---
+title: "Untitled"
+author: "Jiashu Liu"
+date: "2024-02-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(caret)
+library(tidyverse)
+library(dplyr)
+library(glmnet)
+```
+
+```{r}
+# Load Dataset
+data("BreastCancer")
+breastCancer <- BreastCancer %>% 
+  na.omit() %>% 
+  select(-Id) %>% 
+  mutate(Class = as.numeric(Class == "malignant")) 
+```
+
+```{r}
+set.seed(123)
+train_test_split <- sample(1:nrow(breastCancer), floor(0.8 * nrow(breastCancer)))
+training <- breastCancer[train_test_split, ]
+testing <- breastCancer[-train_test_split, ]
+
+library(caret)
+train_control <- trainControl(method = "cv", number = 5)
+
+# train the model on training set
+cv.model <- train(Class ~ .,
+               data = training,
+               trControl = train_control,
+               method = "glm",
+               family=binomial(link = "logit"))
+```
+
+```{r}
+y_test_pred <- predict(cv.model, newdata = testing, type = "prob")
+y_train_pred <- predict(cv.model, newdata = training, type = "raw")
+test_acc <- calc_acc(testing$Class, y_test_pred)
+```
+
+```{r}
+library(e1071)
+set.seed(123)
+folds <- createFolds(breastCancer$Class, k = 10) 
+results <- c() 
+actual <- c()
+predicted <- c()
+```
+
+```{r}
+for (i in 1:10) 
+  train <- breastCancer[-folds[[i]],] 
+  test <- breastCancer[folds[[i]],] 
+  model <- glm(Class ~ ., data = train, family = binomial(link = logit)) 
+  predictions <- predict(model, test, type = "response") 
+  predicted_classes <- ifelse(predictions > 0.5, 1, 0) 
+  actual <-  c(actual, test$Class)
+  predicted <- c(predicted, predicted_classes)
+  accuracy <- mean(predicted_classes == test$Class) 
+  results <- c(results, accuracy)
+```
+
+```{r}
+mean(results) 
+```
+
+```{r}
+table(Actual = actual, Predicted = predicted)
+```
+
