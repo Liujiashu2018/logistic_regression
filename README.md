@@ -1,1 +1,1 @@
-# ml_from_scratch2
+# Understanding Logistic Regression From Scratch
