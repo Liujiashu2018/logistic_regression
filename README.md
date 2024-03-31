@@ -1,1 +1,1 @@
-# Understanding Logistic Regression From Scratch
+# DIY Logistic Regression
